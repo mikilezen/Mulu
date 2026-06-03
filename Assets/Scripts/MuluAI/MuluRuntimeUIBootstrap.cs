@@ -136,14 +136,14 @@ namespace MuluAI
             ReflectionSet(promptController, "worldId", worldId);
             ReflectionSet(promptController, "userId", userId);
 
-            if (!Application.isPlaying)
+            // Build the joystick + action buttons in BOTH edit mode and at runtime.
+            // Previously this was guarded by !Application.isPlaying, which meant the
+            // joystick showed in the editor but was never spawned when pressing Play.
+            hudController.ConfigureGamepad(new ControlsConfig
             {
-                hudController.ConfigureGamepad(new ControlsConfig
-                {
-                    joystick_enabled = true,
-                    buttons = new System.Collections.Generic.List<JoystickButton>()
-                });
-            }
+                joystick_enabled = true,
+                buttons = new System.Collections.Generic.List<JoystickButton>()
+            });
 
             submit.onClick.RemoveAllListeners();
             submit.onClick.AddListener(promptController.SubmitPromptFromInput);
@@ -314,6 +314,10 @@ namespace MuluAI
             {
                 knobImage.raycastTarget = false;
             }
+
+            // Attach the actual joystick behaviour so the spawned joystick is interactive.
+            // Without this the template was just a static panel that did nothing.
+            root.gameObject.AddComponent<MuluVirtualJoystick>();
 
             root.gameObject.SetActive(false);
             return root.gameObject;
