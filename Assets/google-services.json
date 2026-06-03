@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "472172758058",
+    "project_id": "mulu-ccecb",
+    "storage_bucket": "mulu-ccecb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472172758058:android:e8b356583ce6302e10af53",
+        "android_client_info": {
+          "package_name": "com.mulu.ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgPOIw4STuFX3MCVccsw2aVsAF2QPRB9U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
