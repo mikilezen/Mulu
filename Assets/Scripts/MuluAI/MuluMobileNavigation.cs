@@ -426,37 +426,14 @@ namespace MuluAI
             configurator.cameraDistance = 5.25f;
             configurator.cameraTargetOffset = new Vector3(0f, 0.75f, 0f);
             configurator.platformRenderer = stage.transform.Find("CharacterStagePlatform")?.GetComponent<Renderer>();
-
-            Camera mainCamera = Camera.main;
-            if (mainCamera == null)
+            if (configurator.mainCamera == null)
             {
-                GameObject cameraObject = GameObject.Find("Main Camera") ?? GameObject.Find("CharacterPreviewCamera");
-                if (cameraObject != null)
-                {
-                    mainCamera = cameraObject.GetComponent<Camera>();
-                }
-            }
-
-            if (mainCamera != null)
-            {
-                configurator.mainCamera = mainCamera;
-            }
-
-            MuluCameraSwipeControl swipeControl = configurator.cameraSwipeControl != null
-                ? configurator.cameraSwipeControl
-                : FindAnyObjectByType<MuluCameraSwipeControl>();
-            if (swipeControl != null)
-            {
-                configurator.cameraSwipeControl = swipeControl;
-                swipeControl.targetCharacter = character;
+                Camera mainCamera = Camera.main;
                 if (mainCamera != null)
                 {
-                    swipeControl.cameraTransform = mainCamera.transform;
+                    configurator.mainCamera = mainCamera;
                 }
-                swipeControl.distance = configurator.cameraDistance;
-                swipeControl.targetOffset = configurator.cameraTargetOffset;
             }
-
             configurator.ApplySettings();
 
             CreateStageBackdrop(stage.transform);
