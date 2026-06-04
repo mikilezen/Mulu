@@ -2754,17 +2754,17 @@ RectTransform:
   m_GameObject: {fileID: 796289968}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2316806, y: 1.2316806, z: 1.2316806}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 442323612}
   - {fileID: 1672487212}
   - {fileID: 1930210433}
-  m_Father: {fileID: 1832076151}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 768, y: 1024}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 1247.0765, y: 1662.7687}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &809999169
@@ -3665,71 +3665,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 904104502}
   m_CullTransparentMesh: 1
---- !u!1 &929619174
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 929619175}
-  - component: {fileID: 929619176}
-  m_Layer: 0
-  m_Name: MuluMobileNavigation
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &929619175
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 929619174}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -141.5, z: -613.80414}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1832076151}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &929619176
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 929619174}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83f8a285bb773bb4990ad41deba240ca, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MuluAI.MuluMobileNavigation
-  homePage: {fileID: 0}
-  accountPage: {fileID: 0}
-  menuPage: {fileID: 0}
-  promptInput: {fileID: 0}
-  sendButton: {fileID: 0}
-  audioButton: {fileID: 0}
-  promptController: {fileID: 887110782}
-  accountButton: {fileID: 0}
-  menuButton: {fileID: 0}
-  joystick: {fileID: 0}
-  pageBackButton: {fileID: 0}
-  forwardButton: {fileID: 0}
-  backButton: {fileID: 0}
-  leftButton: {fileID: 0}
-  rightButton: {fileID: 0}
-  characterTransform: {fileID: 1153354086}
-  surfaceColor: {r: 0.1, g: 0.12, b: 0.17, a: 0.96}
-  surfaceStrongColor: {r: 0.15, g: 0.18, b: 0.24, a: 0.98}
-  accentColor: {r: 0.08, g: 0.52, b: 1, a: 1}
-  textPrimaryColor: {r: 1, g: 1, b: 1, a: 1}
-  textSecondaryColor: {r: 0.78, g: 0.82, b: 0.88, a: 1}
 --- !u!1 &941966803
 GameObject:
   m_ObjectHideFlags: 0
@@ -4720,23 +4655,23 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 2aac875389f83d74ca592eaccf233261, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1.5
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aac875389f83d74ca592eaccf233261, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.5
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aac875389f83d74ca592eaccf233261, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1.5
+      value: 0.35
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aac875389f83d74ca592eaccf233261, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 669
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aac875389f83d74ca592eaccf233261, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1037
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 2aac875389f83d74ca592eaccf233261, type: 3}
       propertyPath: m_LocalPosition.z
@@ -6230,14 +6165,14 @@ Transform:
   m_GameObject: {fileID: 1663220098}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -768, y: -1024, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1153354086}
   - {fileID: 1797860952}
   - {fileID: 1705402625}
-  m_Father: {fileID: 1832076151}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1670274794
 GameObject:
@@ -6734,12 +6669,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1737490154}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Mask
-  m_ShowMaskGraphic: 1
+  m_ShowMaskGraphic: 0
 --- !u!114 &1737490157
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6753,8 +6688,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0}
-  m_RaycastTarget: 1
+  m_Color: {r: 0.02, g: 0.03, b: 0.045, a: 0.12}
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -7129,146 +7064,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1797860951}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &1832076150
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1832076151}
-  - component: {fileID: 1832076154}
-  - component: {fileID: 1832076153}
-  - component: {fileID: 1832076152}
-  - component: {fileID: 1832076155}
-  m_Layer: 5
-  m_Name: Canvas
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1832076151
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1832076150}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0, y: 0, z: 0}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 929619175}
-  - {fileID: 796289972}
-  - {fileID: 1663220099}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0, y: 0}
---- !u!114 &1832076152
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1832076150}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 55
---- !u!114 &1832076153
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1832076150}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
-  m_UiScaleMode: 0
-  m_ReferencePixelsPerUnit: 100
-  m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 1080, y: 1920}
-  m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 1
-  m_PhysicalUnit: 3
-  m_FallbackScreenDPI: 96
-  m_DefaultSpriteDPI: 96
-  m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
---- !u!223 &1832076154
-Canvas:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1832076150}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
-  m_PixelPerfect: 0
-  m_ReceivesEvents: 1
-  m_OverrideSorting: 0
-  m_OverridePixelPerfect: 0
-  m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
-  m_UseReflectionProbes: 0
-  m_AdditionalShaderChannelsFlag: 25
-  m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
-  m_SortingOrder: 0
-  m_TargetDisplay: 0
---- !u!114 &1832076155
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1832076150}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 65128eaae7ed11b4fa2ad4fa27dfe501, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Mulu.UI.SimpleUIScreen
-  appName: Mulu
-  appSubtitle: Production mobile app shell for a portrait-first experience.
-  backgroundColor: {r: 0.05, g: 0.07, b: 0.1, a: 1}
-  surfaceColor: {r: 0.1, g: 0.12, b: 0.17, a: 0.96}
-  surfaceStrongColor: {r: 0.15, g: 0.18, b: 0.24, a: 0.98}
-  accentColor: {r: 0.22, g: 0.64, b: 0.98, a: 1}
-  accentSoftColor: {r: 0.22, g: 0.64, b: 0.98, a: 0.16}
-  textPrimaryColor: {r: 1, g: 1, b: 1, a: 1}
-  textSecondaryColor: {r: 0.78, g: 0.82, b: 0.88, a: 1}
-  onSettingsModalOpened:
-    m_PersistentCalls:
-      m_Calls: []
-  onSettingsModalClosed:
-    m_PersistentCalls:
-      m_Calls: []
-  _canvas: {fileID: 1832076154}
-  _root: {fileID: 1832076151}
-  _pages: []
-  _tabButtons: []
-  _settingsModal: {fileID: 0}
-  _building: 0
-  _activeTab: 0
 --- !u!1 &1866162874
 GameObject:
   m_ObjectHideFlags: 0
@@ -7606,6 +7401,7 @@ GameObject:
   - component: {fileID: 1930210433}
   - component: {fileID: 1930210435}
   - component: {fileID: 1930210434}
+  - component: {fileID: 1930210436}
   m_Layer: 0
   m_Name: JoystickTemplate
   m_TagString: Untagged
@@ -7672,6 +7468,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1930210432}
   m_CullTransparentMesh: 1
+--- !u!114 &1930210436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930210432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e706b8eee5196f84da6a281c06415045, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MuluAI.MuluVirtualJoystick
 --- !u!1 &1933602320
 GameObject:
   m_ObjectHideFlags: 0
@@ -8258,7 +8066,8 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 330585546}
-  - {fileID: 1832076151}
+  - {fileID: 796289972}
+  - {fileID: 1663220099}
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 847253536}

@@ -132,11 +132,21 @@ namespace MuluAI
                 RectTransform rectTransform = activeJoystick.GetComponent<RectTransform>();
                 if (rectTransform != null)
                 {
-                    rectTransform.anchorMin = new Vector2(0f, 0f);
-                    rectTransform.anchorMax = new Vector2(0f, 0f);
                     rectTransform.pivot = new Vector2(0.5f, 0.5f);
                     rectTransform.sizeDelta = joystickSize;
-                    rectTransform.anchoredPosition = joystickAnchoredPosition;
+
+                    if (joystickAnchor != null)
+                    {
+                        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+                        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+                        rectTransform.anchoredPosition = Vector2.zero;
+                    }
+                    else
+                    {
+                        rectTransform.anchorMin = new Vector2(0f, 0f);
+                        rectTransform.anchorMax = new Vector2(0f, 0f);
+                        rectTransform.anchoredPosition = joystickAnchoredPosition;
+                    }
                 }
             }
 

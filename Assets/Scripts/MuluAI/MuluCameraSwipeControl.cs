@@ -1,6 +1,9 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 
 namespace MuluAI
 {
@@ -106,32 +109,91 @@ namespace MuluAI
         {
             if (!Application.isPlaying) return;
 
-            // Mobile touch input (bypasses EventSystem for reliability)
-            if (Input.touchCount > 0)
+#if ENABLE_INPUT_SYSTEM
+            if (UpdateInputSystemFallback())
             {
-                Touch touch = Input.GetTouch(0);
+                return;
+            }
+#endif
 
-                // Only process if the touch is over the preview area (this RawImage)
-                if (touch.phase == TouchPhase.Began)
+#if ENABLE_LEGACY_INPUT_MANAGER
+            UpdateLegacyTouchFallback();
+#endif
+        }
+
+#if ENABLE_INPUT_SYSTEM
+        private bool UpdateInputSystemFallback()
+        {
+            Touchscreen touchscreen = Touchscreen.current;
+            if (touchscreen == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < touchscreen.touches.Count; i++)
+            {
+                var touch = touchscreen.touches[i];
+                Vector2 position = touch.position.ReadValue();
+
+                if (touch.press.wasPressedThisFrame)
                 {
-                    if (IsTouchOverThisElement(touch.position))
+                    if (IsTouchOverThisElement(position) && !IsTouchOverJoystick(position))
                     {
                         isDragging = true;
-                        lastPointerPos = touch.position;
+                        lastPointerPos = position;
+                        return true;
                     }
                 }
-                else if (touch.phase == TouchPhase.Moved && isDragging)
+                else if (touch.press.isPressed && isDragging)
                 {
-                    Vector2 delta = touch.position - lastPointerPos;
-                    lastPointerPos = touch.position;
+                    Vector2 delta = position - lastPointerPos;
+                    lastPointerPos = position;
                     ApplySwipe(delta);
+                    return true;
                 }
-                else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+                else if (touch.press.wasReleasedThisFrame && isDragging)
                 {
                     isDragging = false;
+                    return true;
                 }
             }
+
+            return false;
         }
+#endif
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+        private void UpdateLegacyTouchFallback()
+        {
+            // Mobile touch input (bypasses EventSystem for reliability)
+            if (Input.touchCount <= 0)
+            {
+                return;
+            }
+
+            Touch touch = Input.GetTouch(0);
+
+            // Only process if the touch is over the preview area (this RawImage)
+            if (touch.phase == TouchPhase.Began)
+            {
+                if (IsTouchOverThisElement(touch.position) && !IsTouchOverJoystick(touch.position))
+                {
+                    isDragging = true;
+                    lastPointerPos = touch.position;
+                }
+            }
+            else if (touch.phase == TouchPhase.Moved && isDragging)
+            {
+                Vector2 delta = touch.position - lastPointerPos;
+                lastPointerPos = touch.position;
+                ApplySwipe(delta);
+            }
+            else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+            {
+                isDragging = false;
+            }
+        }
+#endif
 
         private void ApplySwipe(Vector2 delta)
         {
@@ -192,6 +254,39 @@ namespace MuluAI
             }
 
             return RectTransformUtility.RectangleContainsScreenPoint(rt, screenPos, cam);
+        }
+
+        private static bool IsTouchOverJoystick(Vector2 screenPos)
+        {
+            MuluVirtualJoystick[] joysticks = FindObjectsByType<MuluVirtualJoystick>(FindObjectsSortMode.None);
+            for (int i = 0; i < joysticks.Length; i++)
+            {
+                MuluVirtualJoystick joystick = joysticks[i];
+                if (joystick == null || !joystick.isActiveAndEnabled)
+                {
+                    continue;
+                }
+
+                RectTransform rect = joystick.GetComponent<RectTransform>();
+                if (rect == null)
+                {
+                    continue;
+                }
+
+                Canvas canvas = joystick.GetComponentInParent<Canvas>();
+                Camera camera = null;
+                if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                {
+                    camera = canvas.worldCamera;
+                }
+
+                if (RectTransformUtility.RectangleContainsScreenPoint(rect, screenPos, camera))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
