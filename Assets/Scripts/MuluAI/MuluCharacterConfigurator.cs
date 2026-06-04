@@ -12,7 +12,7 @@ namespace MuluAI
         public float characterScale = 1f;
         public Vector3 characterPositionOffset = Vector3.zero;
         public bool autoFitCharacterScale = true;
-        public float targetCharacterHeight = 2f;
+        public float targetCharacterHeight = 1.45f;
 
         private bool cachedBaseCharacterScale;
         private Vector3 baseCharacterLocalScale = Vector3.one;
@@ -252,10 +252,12 @@ namespace MuluAI
                 return;
             }
 
+            characterTransform.localScale = baseCharacterLocalScale;
+
             Renderer[] renderers = characterTransform.GetComponentsInChildren<Renderer>(true);
             if (renderers == null || renderers.Length == 0)
             {
-                characterTransform.localScale = Vector3.one * characterScale;
+                characterTransform.localScale = baseCharacterLocalScale * Mathf.Max(characterScale, 0.01f);
                 return;
             }
 
@@ -268,8 +270,8 @@ namespace MuluAI
                 }
             }
 
-            float currentHeight = Mathf.Max(bounds.size.y, 0.0001f);
-            float fitMultiplier = targetCharacterHeight / currentHeight;
+            float baseHeight = Mathf.Max(bounds.size.y, 0.0001f);
+            float fitMultiplier = targetCharacterHeight / baseHeight;
             float finalMultiplier = fitMultiplier * Mathf.Max(characterScale, 0.01f);
 
             characterTransform.localScale = baseCharacterLocalScale * finalMultiplier;
