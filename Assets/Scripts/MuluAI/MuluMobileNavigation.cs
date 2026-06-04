@@ -433,6 +433,7 @@ namespace MuluAI
             RectTransform pad = CreatePanel("MoveJoystick3D", parent,
                 new AnchorPreset(new Vector2(0f, 0f), new Vector2(0f, 0f), Vector2.zero),
                 new Vector2(24f, 264f), new Vector2(180f, 180f), new Color(0.02f, 0.025f, 0.04f, 0.65f));
+            ApplyCircleVisual(pad, new Color(0.02f, 0.025f, 0.04f, 0.65f), true);
 
             Image padImage = pad.GetComponent<Image>();
             if (padImage != null)
@@ -441,6 +442,7 @@ namespace MuluAI
             }
 
             RectTransform ring = CreatePanel("Ring", pad, StretchAnchor(), Vector2.zero, new Vector2(-20f, -20f), new Color(1f, 1f, 1f, 0.08f));
+            ApplyCircleVisual(ring, new Color(1f, 1f, 1f, 0.08f), false);
             Image ringImage = ring.GetComponent<Image>();
             if (ringImage != null)
             {
@@ -450,6 +452,7 @@ namespace MuluAI
             RectTransform knob = CreatePanel("Knob", pad,
                 new AnchorPreset(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)),
                 Vector2.zero, new Vector2(76f, 76f), accentColor);
+            ApplyCircleVisual(knob, accentColor, false);
             Image knobImage = knob.GetComponent<Image>();
             if (knobImage != null)
             {
@@ -471,6 +474,24 @@ namespace MuluAI
             rect.sizeDelta = size;
             panel.GetComponent<Image>().color = color;
             return rect;
+        }
+
+        private static void ApplyCircleVisual(RectTransform rect, Color color, bool raycastTarget)
+        {
+            Image image = rect.GetComponent<Image>();
+            if (image != null)
+            {
+                image.enabled = false;
+            }
+
+            MuluCircleGraphic circle = rect.GetComponent<MuluCircleGraphic>();
+            if (circle == null)
+            {
+                circle = rect.gameObject.AddComponent<MuluCircleGraphic>();
+            }
+
+            circle.color = color;
+            circle.raycastTarget = raycastTarget;
         }
 
         private static AnchorPreset StretchAnchor()

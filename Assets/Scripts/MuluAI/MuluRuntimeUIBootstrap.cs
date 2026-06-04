@@ -378,7 +378,7 @@ namespace MuluAI
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 1f;
 
-            if (FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
+            if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
             {
                 new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
             }
@@ -432,6 +432,7 @@ namespace MuluAI
         private GameObject CreateJoystickTemplate(Transform parent)
         {
             RectTransform root = CreatePanel("JoystickTemplate", parent, AnchorStretch(), Vector2.zero, new Vector2(270f, 270f), new Color(0.02f, 0.03f, 0.045f, 0.42f));
+            ApplyCircleVisual(root, new Color(0.02f, 0.03f, 0.045f, 0.42f), true);
             Image rootImage = root.GetComponent<Image>();
             if (rootImage != null)
             {
@@ -439,6 +440,7 @@ namespace MuluAI
             }
 
             RectTransform ring = CreatePanel("Ring", root, new AnchorPreset(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)), Vector2.zero, new Vector2(210f, 210f), new Color(1f, 1f, 1f, 0.08f));
+            ApplyCircleVisual(ring, new Color(1f, 1f, 1f, 0.08f), false);
             Image ringImage = ring.GetComponent<Image>();
             if (ringImage != null)
             {
@@ -446,6 +448,7 @@ namespace MuluAI
             }
 
             RectTransform knob = CreatePanel("Knob", root, new AnchorPreset(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)), Vector2.zero, new Vector2(105f, 105f), accentColor);
+            ApplyCircleVisual(knob, accentColor, false);
             Image knobImage = knob.GetComponent<Image>();
             if (knobImage != null)
             {
@@ -458,6 +461,24 @@ namespace MuluAI
 
             root.gameObject.SetActive(false);
             return root.gameObject;
+        }
+
+        private static void ApplyCircleVisual(RectTransform rect, Color color, bool raycastTarget)
+        {
+            Image image = rect.GetComponent<Image>();
+            if (image != null)
+            {
+                image.enabled = false;
+            }
+
+            MuluCircleGraphic circle = rect.GetComponent<MuluCircleGraphic>();
+            if (circle == null)
+            {
+                circle = rect.gameObject.AddComponent<MuluCircleGraphic>();
+            }
+
+            circle.color = color;
+            circle.raycastTarget = raycastTarget;
         }
 
         private RectTransform CreatePanel(string name, Transform parent, AnchorPreset anchors, Vector2 position, Vector2 size, Color color)

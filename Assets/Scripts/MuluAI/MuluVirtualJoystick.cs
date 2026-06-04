@@ -21,6 +21,9 @@ namespace MuluAI
         {
             ring = GetComponent<RectTransform>();
             knob = transform.Find("Knob")?.GetComponent<RectTransform>();
+            EnsureCircleVisual(GetComponent<RectTransform>(), new Color(0.02f, 0.025f, 0.04f, 0.65f), true);
+            EnsureCircleVisual(transform.Find("Ring") as RectTransform, new Color(1f, 1f, 1f, 0.08f), false);
+            EnsureCircleVisual(knob, new Color(0.08f, 0.52f, 1f, 1f), false);
             
             if (ring != null)
             {
@@ -68,6 +71,29 @@ namespace MuluAI
                 knob.anchoredPosition = Vector2.zero;
             }
             InputDirection = Vector2.zero;
+        }
+
+        private static void EnsureCircleVisual(RectTransform rect, Color color, bool raycastTarget)
+        {
+            if (rect == null)
+            {
+                return;
+            }
+
+            var image = rect.GetComponent<UnityEngine.UI.Image>();
+            if (image != null)
+            {
+                image.enabled = false;
+            }
+
+            var circle = rect.GetComponent<MuluCircleGraphic>();
+            if (circle == null)
+            {
+                circle = rect.gameObject.AddComponent<MuluCircleGraphic>();
+            }
+
+            circle.color = color;
+            circle.raycastTarget = raycastTarget;
         }
     }
 }

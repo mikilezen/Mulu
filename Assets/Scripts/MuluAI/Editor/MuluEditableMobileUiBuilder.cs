@@ -337,6 +337,7 @@ namespace MuluAI.Editor
                 padImage.sprite = knobSprite;
                 padImage.raycastTarget = true;
             }
+            ApplyCircleVisual(pad, new Color(0.02f, 0.025f, 0.04f, 0.65f), true);
 
             // Ring overlay (thin inner border representation)
             var ring = Box("Ring", pad, StretchAnchor(), Vector2.zero, new Vector2(-20, -20), new Color(1, 1, 1, 0.08f));
@@ -346,6 +347,7 @@ namespace MuluAI.Editor
                 ringImage.sprite = knobSprite;
                 ringImage.raycastTarget = false;
             }
+            ApplyCircleVisual(ring, new Color(1, 1, 1, 0.08f), false);
 
             // Central Knob
             var knob = Box("Knob", pad, Anc(0.5f, 0.5f, 0.5f, 0.5f), Vector2.zero, new Vector2(76, 76), COL_ACCENT);
@@ -355,6 +357,7 @@ namespace MuluAI.Editor
                 knobImage.sprite = knobSprite;
                 knobImage.raycastTarget = false;
             }
+            ApplyCircleVisual(knob, COL_ACCENT, false);
 
             return pad.gameObject.AddComponent<MuluVirtualJoystick>();
         }
@@ -867,13 +870,34 @@ namespace MuluAI.Editor
         {
             RectTransform r = Box("JoystickTemplate", parent, StretchAnchor(),
                 Vector2.zero, new Vector2(270, 270), new Color(0.02f, 0.03f, 0.045f, 0.42f));
-            Box("Ring", r, Anc(0.5f, 0.5f, 0.5f, 0.5f),
+            ApplyCircleVisual(r, new Color(0.02f, 0.03f, 0.045f, 0.42f), true);
+            RectTransform ring = Box("Ring", r, Anc(0.5f, 0.5f, 0.5f, 0.5f),
                 Vector2.zero, new Vector2(210, 210), new Color(1, 1, 1, 0.08f));
-            Box("Knob", r, Anc(0.5f, 0.5f, 0.5f, 0.5f),
+            ApplyCircleVisual(ring, new Color(1, 1, 1, 0.08f), false);
+            RectTransform knob = Box("Knob", r, Anc(0.5f, 0.5f, 0.5f, 0.5f),
                 Vector2.zero, new Vector2(105, 105), COL_ACCENT);
+            ApplyCircleVisual(knob, COL_ACCENT, false);
             r.gameObject.AddComponent<MuluVirtualJoystick>();
             r.gameObject.SetActive(false);
             return r.gameObject;
+        }
+
+        private static void ApplyCircleVisual(RectTransform rect, Color color, bool raycastTarget)
+        {
+            Image image = rect.GetComponent<Image>();
+            if (image != null)
+            {
+                image.enabled = false;
+            }
+
+            MuluCircleGraphic circle = rect.GetComponent<MuluCircleGraphic>();
+            if (circle == null)
+            {
+                circle = rect.gameObject.AddComponent<MuluCircleGraphic>();
+            }
+
+            circle.color = color;
+            circle.raycastTarget = raycastTarget;
         }
 
         private static void DestroyNamed(string n)
