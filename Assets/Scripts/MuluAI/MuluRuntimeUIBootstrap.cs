@@ -43,7 +43,7 @@ namespace MuluAI
                 return;
             }
 
-            if (GameObject.Find("MuluMobileCanvas") != null)
+            if (GameObject.Find("MuluCanvas") != null || GameObject.Find("MuluMobileCanvas") != null)
             {
                 return;
             }
@@ -70,6 +70,7 @@ namespace MuluAI
             DynamicHUDController hudController = GetOrAdd<DynamicHUDController>(gameObject);
             EnvironmentController environmentController = GetOrAdd<EnvironmentController>(gameObject);
             MuluPromptBuildController promptController = GetOrAdd<MuluPromptBuildController>(gameObject);
+            MuluMobileNavigation navigation = GetOrAdd<MuluMobileNavigation>(gameObject);
 
             Transform runtimeCharacter = BuildCharacterStage();
 
@@ -88,7 +89,7 @@ namespace MuluAI
             ReflectionSet(chatLog, "content", chatContent);
             ReflectionSet(chatLog, "scrollRect", chatScroll);
             ReflectionSet(chatLog, "font", ResolveFont());
-            chatLog.AddAiMessage("Tell me what to build. I can change controls, spawn assets, and reshape the scene from your prompt.");
+            // Leave the chat log empty on first load; the 3D game stage is the hero until the player sends a prompt.
 
             Text narrative = CreateText("NarrativeMirror", chatShell, "", 20, FontStyle.Normal, TextAnchor.UpperLeft);
             narrative.color = new Color(1f, 1f, 1f, 0f);
@@ -105,7 +106,7 @@ namespace MuluAI
             InputField input = CreateInput(composer);
             SetRect(input.GetComponent<RectTransform>(), new AnchorPreset(new Vector2(0f, 0.5f), new Vector2(1f, 0.5f), new Vector2(0.5f, 0.5f)), new Vector2(-118f, 16f), new Vector2(-268f, 96f));
 
-            Button submit = CreateButton("BuildButton", composer, "Build", accentColor, 30);
+            Button submit = CreateButton("BuildButton", composer, "Generate 3D", accentColor, 24);
             SetRect(submit.GetComponent<RectTransform>(), new AnchorPreset(new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f)), new Vector2(-24f, 16f), new Vector2(212f, 96f));
 
             Text status = CreateText("StatusLine", composer, "Ready", 22, FontStyle.Normal, TextAnchor.MiddleLeft);
@@ -127,6 +128,12 @@ namespace MuluAI
                 new Vector2(172f, 245f),
                 new Vector2(300f, 300f),
                 Color.clear);
+
+            Button jumpButton = CreateButton("JumpButton", safeRoot, "JUMP", accentColor, 24);
+            SetRect(jumpButton.GetComponent<RectTransform>(),
+                new AnchorPreset(new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(1f, 0f)),
+                new Vector2(-34f, 235f), new Vector2(150f, 150f));
+            ApplyCircleVisual(jumpButton.GetComponent<RectTransform>(), new Color(accentColor.r, accentColor.g, accentColor.b, 0.86f), true);
 
             GameObject actionButtonPrefab = CreateActionButtonTemplate(canvas.transform);
             GameObject joystickPrefab = CreateJoystickTemplate(canvas.transform);
@@ -162,18 +169,45 @@ namespace MuluAI
                 buttons = new System.Collections.Generic.List<JoystickButton>()
             });
 
+            MuluVirtualJoystick activeJoystick = joystickAnchor.GetComponentInChildren<MuluVirtualJoystick>(true);
+            navigation.promptInput = input;
+            navigation.sendButton = submit;
+            navigation.jumpButton = jumpButton;
+            navigation.promptController = promptController;
+            navigation.joystick = activeJoystick;
+            navigation.characterTransform = runtimeCharacter;
+            navigation.Wire();
+
             submit.onClick.RemoveAllListeners();
             submit.onClick.AddListener(promptController.SubmitPromptFromInput);
             input.onEndEdit.RemoveAllListeners();
             input.onEndEdit.AddListener(value =>
             {
-                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                if (IsSubmitKeyPressed())
                 {
                     promptController.SubmitPrompt(value);
                 }
             });
 
             Debug.Log("Mulu ChatGPT-style portrait game UI generated.");
+        }
+
+        private static bool IsSubmitKeyPressed()
+        {
+#if ENABLE_INPUT_SYSTEM
+            UnityEngine.InputSystem.Keyboard keyboard = UnityEngine.InputSystem.Keyboard.current;
+            if (keyboard != null && (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame))
+            {
+                return true;
+            }
+#endif
+#if ENABLE_LEGACY_INPUT_MANAGER
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                return true;
+            }
+#endif
+            return false;
         }
 
         private Transform BuildCharacterStage()
@@ -204,7 +238,7 @@ namespace MuluAI
                 fallback.transform.SetParent(stage.transform, false);
                 fallback.transform.localPosition = Vector3.zero;
                 fallback.transform.localRotation = Quaternion.identity;
-                fallback.transform.localScale = Vector3.one * 1.5f;
+                fallback.transform.localScale = Vector3.one;
                 character = fallback.transform;
             }
 
@@ -212,6 +246,8 @@ namespace MuluAI
             {
                 character.SetParent(stage.transform, true);
             }
+
+            character.localRotation = Quaternion.identity;
 
             GameObject platform = GameObject.Find("CharacterStagePlatform");
             Renderer platformRenderer = null;
@@ -239,9 +275,13 @@ namespace MuluAI
                     {
                         name = "MuluRuntimePlatformMaterial"
                     };
-                    platformRenderer.sharedMaterial.color = new Color(0.08f, 0.1f, 0.15f, 1f);
+                    platformRenderer.sharedMaterial.color = new Color(0.055f, 0.075f, 0.12f, 1f);
+                    if (platformRenderer.sharedMaterial.HasProperty("_Metallic")) platformRenderer.sharedMaterial.SetFloat("_Metallic", 0.7f);
+                    if (platformRenderer.sharedMaterial.HasProperty("_Smoothness")) platformRenderer.sharedMaterial.SetFloat("_Smoothness", 0.85f);
                 }
             }
+
+            CreateGamingBackdrop(stage.transform);
 
             Light keyLight = new GameObject("CharacterKeyLight").AddComponent<Light>();
             keyLight.transform.SetParent(stage.transform, false);
@@ -270,11 +310,11 @@ namespace MuluAI
             Camera cam = new GameObject("Main Camera").AddComponent<Camera>();
             cam.gameObject.tag = "MainCamera";
             cam.transform.SetParent(stage.transform, false);
-            cam.transform.localPosition = new Vector3(0f, 1.0f, 4.0f);
-            cam.transform.localRotation = Quaternion.Euler(3f, 180f, 0f);
+            cam.transform.localPosition = new Vector3(0f, 1.35f, 5.25f);
+            cam.transform.localRotation = Quaternion.Euler(5f, 180f, 0f);
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0.04f, 0.05f, 0.07f, 1f);
-            cam.fieldOfView = 40f;
+            cam.fieldOfView = 48f;
             cam.nearClipPlane = 0.3f;
             cam.farClipPlane = 1000f;
             cam.depth = -1;
@@ -285,15 +325,90 @@ namespace MuluAI
                 configurator = stage.AddComponent<MuluCharacterConfigurator>();
             }
 
+            MuluCharacterRuntimeCustomizer customizer = stage.GetComponent<MuluCharacterRuntimeCustomizer>();
+            if (customizer == null)
+            {
+                customizer = stage.AddComponent<MuluCharacterRuntimeCustomizer>();
+            }
+            customizer.currentCharacter = character;
+
             configurator.mainCamera = cam;
             configurator.keyLight = keyLight;
             configurator.fillLight = fillLight;
             configurator.rimLight = rimLight;
             configurator.platformRenderer = platformRenderer;
             configurator.characterTransform = character;
+            MuluCharacterMotor motor = character.GetComponent<MuluCharacterMotor>();
+            if (motor == null)
+            {
+                motor = character.gameObject.AddComponent<MuluCharacterMotor>();
+            }
+            motor.stageRadius = 2.65f;
+            configurator.characterScale = 1f;
+            configurator.targetCharacterHeight = 1.45f;
+            configurator.platformDiameter = 6f;
+            configurator.cameraDistance = 5.25f;
+            configurator.cameraTargetOffset = new Vector3(0f, 0.75f, 0f);
             configurator.ApplySettings();
 
             return character;
+        }
+
+        private void CreateGamingBackdrop(Transform stage)
+        {
+            if (stage == null || stage.Find("MuluNeonBackdrop") != null)
+            {
+                return;
+            }
+
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            Material backdropMaterial = shader != null ? new Material(shader) { name = "MuluNeonBackdropMaterial" } : null;
+            if (backdropMaterial != null)
+            {
+                backdropMaterial.color = new Color(0.025f, 0.035f, 0.075f, 1f);
+            }
+
+            GameObject backdrop = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            backdrop.name = "MuluNeonBackdrop";
+            backdrop.transform.SetParent(stage, false);
+            backdrop.transform.localPosition = new Vector3(0f, 1.15f, -2.85f);
+            backdrop.transform.localScale = new Vector3(6.4f, 2.4f, 0.08f);
+            Renderer backdropRenderer = backdrop.GetComponent<Renderer>();
+            if (backdropRenderer != null && backdropMaterial != null)
+            {
+                backdropRenderer.sharedMaterial = backdropMaterial;
+            }
+
+            AddNeonBar(stage, "MuluNeonBarLeft", new Vector3(-2.95f, 1.1f, -2.78f), new Vector3(0.06f, 2.2f, 0.06f), accentColor);
+            AddNeonBar(stage, "MuluNeonBarRight", new Vector3(2.95f, 1.1f, -2.78f), new Vector3(0.06f, 2.2f, 0.06f), warmAccentColor);
+            AddNeonBar(stage, "MuluNeonBarTop", new Vector3(0f, 2.18f, -2.78f), new Vector3(5.9f, 0.06f, 0.06f), new Color(0.45f, 0.15f, 1f, 1f));
+        }
+
+        private static void AddNeonBar(Transform parent, string name, Vector3 position, Vector3 scale, Color color)
+        {
+            if (parent.Find(name) != null)
+            {
+                return;
+            }
+
+            GameObject bar = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bar.name = name;
+            bar.transform.SetParent(parent, false);
+            bar.transform.localPosition = position;
+            bar.transform.localScale = scale;
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            Renderer renderer = bar.GetComponent<Renderer>();
+            if (renderer != null && shader != null)
+            {
+                Material material = new Material(shader) { name = name + "Material" };
+                material.color = color;
+                if (material.HasProperty("_EmissionColor"))
+                {
+                    material.EnableKeyword("_EMISSION");
+                    material.SetColor("_EmissionColor", color * 1.8f);
+                }
+                renderer.sharedMaterial = material;
+            }
         }
 
         [ContextMenu("Clear Mulu UI")]

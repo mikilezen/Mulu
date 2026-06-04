@@ -157,6 +157,7 @@ namespace MuluAI.Editor
             nav.menuButton     = menuBtn;
             nav.pageBackButton = pageBackBtn;
             nav.joystick       = joystick;
+            nav.jumpButton     = homePg.transform.Find("CharacterPreviewFrame/JumpButton")?.GetComponent<Button>();
             nav.forwardButton  = fwd;
             nav.backButton     = bck;
             nav.characterTransform = stage.transform.Find("CoolPirate_EditableCharacter")
@@ -217,7 +218,6 @@ namespace MuluAI.Editor
             chatLog = BuildChatScroll(previewFrame, out RectTransform chatContent);
             if (chatLog != null)
             {
-                chatLog.AddSystemMessage("Chat is ready. Type a prompt below to start.");
                 if (chatContent != null)
                 {
                     chatContent.SetAsLastSibling();
@@ -226,6 +226,7 @@ namespace MuluAI.Editor
 
             // Circular Virtual Joystick nested inside Preview Frame (bottom-left overlay)
             joystick = BuildJoystick(previewFrame);
+            BuildJumpButton(previewFrame);
 
             // Forward/Back buttons removed (movement controlled by 360-degree joystick)
             fwd = null;
@@ -360,6 +361,22 @@ namespace MuluAI.Editor
             ApplyCircleVisual(knob, COL_ACCENT, false);
 
             return pad.gameObject.AddComponent<MuluVirtualJoystick>();
+        }
+
+        private static Button BuildJumpButton(RectTransform parent)
+        {
+            Sprite knobSprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+            RectTransform jumpRect = RoundIconBtn("JumpButton", parent,
+                Anc(1, 0, 1, 0, 1, 0), new Vector2(-28, 278), new Vector2(132, 132),
+                "JUMP", COL_TEXT, COL_ACCENT_BLUE, knobSprite);
+            Text label = jumpRect.GetComponentInChildren<Text>(true);
+            if (label != null)
+            {
+                label.fontSize = 24;
+                label.fontStyle = FontStyle.Bold;
+            }
+
+            return jumpRect.GetComponent<Button>();
         }
 
         private static void BuildForwardBackButtons(RectTransform parent, out Button fwd, out Button bck)
@@ -499,14 +516,14 @@ namespace MuluAI.Editor
                 model.transform.SetParent(stage.transform, false);
                 model.transform.localPosition = Vector3.zero;
                 model.transform.localRotation = Quaternion.identity;
-                model.transform.localScale = Vector3.one * 1.5f;
+                model.transform.localScale = Vector3.one;
             }
             else
             {
                 GameObject fallback = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 fallback.name = "CharacterFallback";
                 fallback.transform.SetParent(stage.transform, false);
-                fallback.transform.localScale = Vector3.one * 1.5f;
+                fallback.transform.localScale = Vector3.one;
             }
 
             // Circular platform disc under character
@@ -520,11 +537,17 @@ namespace MuluAI.Editor
             Renderer pRend = platform.GetComponent<Renderer>();
             if (pRend != null)
             {
-                pRend.material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                pRend.material.color = new Color(0.08f, 0.1f, 0.15f, 1f);
-                pRend.material.SetFloat("_Metallic", 0.8f);
-                pRend.material.SetFloat("_Smoothness", 0.8f);
+                Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                if (shader != null)
+                {
+                    pRend.material = new Material(shader);
+                    pRend.material.color = new Color(0.055f, 0.075f, 0.12f, 1f);
+                    if (pRend.material.HasProperty("_Metallic")) pRend.material.SetFloat("_Metallic", 0.75f);
+                    if (pRend.material.HasProperty("_Smoothness")) pRend.material.SetFloat("_Smoothness", 0.85f);
+                }
             }
+
+            BuildGamingBackdrop(stage.transform);
 
             // Key light (warm directional)
             Light keyLight = new GameObject("CharacterKeyLight").AddComponent<Light>();
@@ -558,11 +581,11 @@ namespace MuluAI.Editor
             Camera cam = new GameObject("Main Camera").AddComponent<Camera>();
             cam.gameObject.tag = "MainCamera";
             cam.transform.SetParent(stage.transform, false);
-            cam.transform.localPosition = new Vector3(0, 1.0f, 4.0f);
-            cam.transform.localRotation = Quaternion.Euler(3, 180, 0);
+            cam.transform.localPosition = new Vector3(0, 1.35f, 5.25f);
+            cam.transform.localRotation = Quaternion.Euler(5, 180, 0);
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = new Color(0.04f, 0.05f, 0.07f, 1f);
-            cam.fieldOfView = 40;
+            cam.fieldOfView = 48;
             cam.nearClipPlane = 0.3f;
             cam.farClipPlane = 1000f;
             cam.depth = -1; // Render behind UI
@@ -582,6 +605,15 @@ namespace MuluAI.Editor
                 modelTrans = stage.transform.GetChild(0);
             }
             configurator.characterTransform = modelTrans;
+            if (modelTrans != null && modelTrans.GetComponent<MuluCharacterMotor>() == null)
+            {
+                modelTrans.gameObject.AddComponent<MuluCharacterMotor>();
+            }
+            configurator.characterScale = 1f;
+            configurator.targetCharacterHeight = 1.45f;
+            configurator.platformDiameter = 6f;
+            configurator.cameraDistance = 5.25f;
+            configurator.cameraTargetOffset = new Vector3(0f, 0.75f, 0f);
 
             // Camera swipe control
             var swipeControl = touchPanel.GetComponent<MuluCameraSwipeControl>();
@@ -592,10 +624,70 @@ namespace MuluAI.Editor
                 swipeControl.targetCharacter = modelTrans;
             }
 
+            var customizer = stage.AddComponent<MuluCharacterRuntimeCustomizer>();
+            customizer.currentCharacter = modelTrans;
+
             // Apply all initial parameters (which configures camera centering target offset/distance, platform metallic, and 3-point lights)
             configurator.ApplySettings();
 
             return stage;
+        }
+
+        private static void BuildGamingBackdrop(Transform stage)
+        {
+            if (stage == null || stage.Find("MuluNeonBackdrop") != null)
+            {
+                return;
+            }
+
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            Material backdropMaterial = shader != null ? new Material(shader) { name = "MuluNeonBackdropMaterial" } : null;
+            if (backdropMaterial != null)
+            {
+                backdropMaterial.color = new Color(0.025f, 0.035f, 0.075f, 1f);
+            }
+
+            GameObject backdrop = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            backdrop.name = "MuluNeonBackdrop";
+            backdrop.transform.SetParent(stage, false);
+            backdrop.transform.localPosition = new Vector3(0f, 1.15f, -2.85f);
+            backdrop.transform.localScale = new Vector3(6.4f, 2.4f, 0.08f);
+            Renderer backdropRenderer = backdrop.GetComponent<Renderer>();
+            if (backdropRenderer != null && backdropMaterial != null)
+            {
+                backdropRenderer.sharedMaterial = backdropMaterial;
+            }
+
+            AddNeonBar(stage, "MuluNeonBarLeft", new Vector3(-2.95f, 1.1f, -2.78f), new Vector3(0.06f, 2.2f, 0.06f), COL_ACCENT_BLUE);
+            AddNeonBar(stage, "MuluNeonBarRight", new Vector3(2.95f, 1.1f, -2.78f), new Vector3(0.06f, 2.2f, 0.06f), COL_ACCENT_ORANGE);
+            AddNeonBar(stage, "MuluNeonBarTop", new Vector3(0f, 2.18f, -2.78f), new Vector3(5.9f, 0.06f, 0.06f), COL_ACCENT_PURPLE);
+        }
+
+        private static void AddNeonBar(Transform parent, string name, Vector3 position, Vector3 scale, Color color)
+        {
+            if (parent.Find(name) != null)
+            {
+                return;
+            }
+
+            GameObject bar = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bar.name = name;
+            bar.transform.SetParent(parent, false);
+            bar.transform.localPosition = position;
+            bar.transform.localScale = scale;
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            Renderer renderer = bar.GetComponent<Renderer>();
+            if (renderer != null && shader != null)
+            {
+                Material material = new Material(shader) { name = name + "Material" };
+                material.color = color;
+                if (material.HasProperty("_EmissionColor"))
+                {
+                    material.EnableKeyword("_EMISSION");
+                    material.SetColor("_EmissionColor", color * 1.8f);
+                }
+                renderer.sharedMaterial = material;
+            }
         }
 
         // ─── UI HELPERS ───
