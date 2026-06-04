@@ -9,8 +9,13 @@ namespace MuluAI
     {
         [Header("Character Model Settings")]
         public Transform characterTransform;
-        public float characterScale = 1.35f;
+        public float characterScale = 1f;
         public Vector3 characterPositionOffset = Vector3.zero;
+        public bool autoFitCharacterScale = true;
+        public float targetCharacterHeight = 2f;
+
+        private bool cachedBaseCharacterScale;
+        private Vector3 baseCharacterLocalScale = Vector3.one;
 
         [Header("Platform Settings")]
         public Renderer platformRenderer;
@@ -88,7 +93,7 @@ namespace MuluAI
 
             if (cameraSwipeControl == null)
             {
-                cameraSwipeControl = FindFirstObjectByType<MuluCameraSwipeControl>();
+                cameraSwipeControl = FindAnyObjectByType<MuluCameraSwipeControl>();
             }
 
             if (keyLight == null)
@@ -117,8 +122,18 @@ namespace MuluAI
             {
                 if (characterTransform != null)
                 {
-                    characterTransform.localScale = Vector3.one * characterScale;
-                    characterTransform.localPosition = characterPositionOffset;
+                    CacheBaseCharacterScale();
+
+                    if (autoFitCharacterScale)
+                    {
+                        FitCharacterToBounds();
+                    }
+                    else
+                    {
+                        characterTransform.localScale = baseCharacterLocalScale * Mathf.Max(characterScale, 0.01f);
+                    }
+
+                    CenterCharacterFromBounds();
                     FrameCharacterFromBounds();
                 }
             }
@@ -230,6 +245,74 @@ namespace MuluAI
             catch (System.Exception e) { Debug.LogWarning("Configurator cameraSwipeControl error: " + e.Message); }
         }
 
+        private void FitCharacterToBounds()
+        {
+            if (characterTransform == null)
+            {
+                return;
+            }
+
+            Renderer[] renderers = characterTransform.GetComponentsInChildren<Renderer>(true);
+            if (renderers == null || renderers.Length == 0)
+            {
+                characterTransform.localScale = Vector3.one * characterScale;
+                return;
+            }
+
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                if (renderers[i] != null)
+                {
+                    bounds.Encapsulate(renderers[i].bounds);
+                }
+            }
+
+            float currentHeight = Mathf.Max(bounds.size.y, 0.0001f);
+            float fitMultiplier = targetCharacterHeight / currentHeight;
+            float finalMultiplier = fitMultiplier * Mathf.Max(characterScale, 0.01f);
+
+            characterTransform.localScale = baseCharacterLocalScale * finalMultiplier;
+        }
+
+        private void CacheBaseCharacterScale()
+        {
+            if (cachedBaseCharacterScale || characterTransform == null)
+            {
+                return;
+            }
+
+            baseCharacterLocalScale = characterTransform.localScale;
+            cachedBaseCharacterScale = true;
+        }
+
+        private void CenterCharacterFromBounds()
+        {
+            if (characterTransform == null)
+            {
+                return;
+            }
+
+            Renderer[] renderers = characterTransform.GetComponentsInChildren<Renderer>(true);
+            if (renderers == null || renderers.Length == 0)
+            {
+                characterTransform.localPosition = characterPositionOffset;
+                return;
+            }
+
+            Bounds bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++)
+            {
+                if (renderers[i] != null)
+                {
+                    bounds.Encapsulate(renderers[i].bounds);
+                }
+            }
+
+            Vector3 pivotOffset = bounds.center - characterTransform.position;
+            characterTransform.localPosition = characterPositionOffset - pivotOffset;
+        }
+
         private void FrameCharacterFromBounds()
         {
             if (characterTransform == null)
@@ -256,7 +339,7 @@ namespace MuluAI
             cameraTargetOffset = new Vector3(pivotOffset.x, Mathf.Max(pivotOffset.y, 0.7f), pivotOffset.z);
 
             float frameDistance = Mathf.Max(bounds.extents.magnitude * 2.25f, 3.5f);
-            cameraDistance = Mathf.Max(cameraDistance, frameDistance);
+            cameraDistance = frameDistance;
         }
     }
 }

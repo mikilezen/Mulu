@@ -35,7 +35,6 @@ namespace Mulu.UI
         [SerializeField] private List<RectTransform> _pages = new List<RectTransform>();
         [SerializeField] private List<Button> _tabButtons = new List<Button>();
         [SerializeField] private RectTransform _settingsModal;
-        [SerializeField] private bool _building;
         [SerializeField] private int _activeTab;
 
         public Canvas CanvasRef => _canvas;
@@ -212,7 +211,6 @@ namespace Mulu.UI
         public void BuildUITemplate()
         {
 #if UNITY_EDITOR
-            _building = true;
             Debug.Log("Building Editable SimpleUIScreen UI template...");
 
             // Ensure we have a canvas
@@ -457,7 +455,6 @@ namespace Mulu.UI
             UnityEditor.EditorUtility.SetDirty(gameObject);
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(gameObject.scene);
             Debug.Log("UI build complete! Hierarchy has been fully created in the scene.");
-            _building = false;
 #endif
         }
     }

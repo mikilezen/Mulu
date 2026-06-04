@@ -25,15 +25,30 @@ namespace MuluAI
 
         private void Start()
         {
-            if (buildUiOnStart)
+            EnsureBuilt();
+        }
+
+        private void OnEnable()
+        {
+            if (!Application.isPlaying)
             {
-                if (GameObject.Find("MuluMobileCanvas") != null)
-                {
-                    Debug.Log("MuluMobileCanvas already exists in scene. Skipping runtime programmatic UI generation.");
-                    return;
-                }
-                Build();
+                EnsureBuilt();
             }
+        }
+
+        private void EnsureBuilt()
+        {
+            if (!buildUiOnStart)
+            {
+                return;
+            }
+
+            if (GameObject.Find("MuluMobileCanvas") != null)
+            {
+                return;
+            }
+
+            Build();
         }
 
         [ContextMenu("Build Mulu UI")]
@@ -55,6 +70,8 @@ namespace MuluAI
             DynamicHUDController hudController = GetOrAdd<DynamicHUDController>(gameObject);
             EnvironmentController environmentController = GetOrAdd<EnvironmentController>(gameObject);
             MuluPromptBuildController promptController = GetOrAdd<MuluPromptBuildController>(gameObject);
+
+            Transform runtimeCharacter = BuildCharacterStage();
 
             RectTransform chatShell = CreatePanel(
                 "AICommandConsole",
@@ -127,7 +144,7 @@ namespace MuluAI
             ReflectionSet(promptController, "assetPlacementManager", placementManager);
             ReflectionSet(promptController, "hudController", hudController);
             ReflectionSet(promptController, "environmentController", environmentController);
-            ReflectionSet(promptController, "playerTransform", playerTransform);
+            ReflectionSet(promptController, "playerTransform", runtimeCharacter != null ? runtimeCharacter : playerTransform);
             ReflectionSet(promptController, "promptInputField", input);
             ReflectionSet(promptController, "submitButton", submit);
             ReflectionSet(promptController, "narrativeText", narrative);
@@ -157,6 +174,126 @@ namespace MuluAI
             });
 
             Debug.Log("Mulu ChatGPT-style portrait game UI generated.");
+        }
+
+        private Transform BuildCharacterStage()
+        {
+            Transform character = playerTransform;
+
+            if (character == null)
+            {
+                GameObject existingCharacter = GameObject.Find("CoolPirate_EditableCharacter") ?? GameObject.Find("CharacterFallback");
+                if (existingCharacter != null)
+                {
+                    character = existingCharacter.transform;
+                }
+            }
+
+            GameObject stage = GameObject.Find("MuluRuntimeCharacterStage");
+            if (stage == null)
+            {
+                stage = new GameObject("MuluRuntimeCharacterStage");
+            }
+
+            stage.transform.position = Vector3.zero;
+
+            if (character == null)
+            {
+                GameObject fallback = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                fallback.name = "CharacterFallback";
+                fallback.transform.SetParent(stage.transform, false);
+                fallback.transform.localPosition = Vector3.zero;
+                fallback.transform.localRotation = Quaternion.identity;
+                fallback.transform.localScale = Vector3.one * 1.5f;
+                character = fallback.transform;
+            }
+
+            if (character.parent != stage.transform)
+            {
+                character.SetParent(stage.transform, true);
+            }
+
+            GameObject platform = GameObject.Find("CharacterStagePlatform");
+            Renderer platformRenderer = null;
+            if (platform == null)
+            {
+                platform = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                platform.name = "CharacterStagePlatform";
+                platform.transform.SetParent(stage.transform, false);
+                platform.transform.localPosition = new Vector3(0f, -0.05f, 0f);
+                platform.transform.localScale = new Vector3(6f, 0.05f, 6f);
+                platformRenderer = platform.GetComponent<Renderer>();
+            }
+            else
+            {
+                platform.transform.SetParent(stage.transform, false);
+                platformRenderer = platform.GetComponent<Renderer>();
+            }
+
+            if (platformRenderer != null)
+            {
+                Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                if (shader != null)
+                {
+                    platformRenderer.sharedMaterial = new Material(shader)
+                    {
+                        name = "MuluRuntimePlatformMaterial"
+                    };
+                    platformRenderer.sharedMaterial.color = new Color(0.08f, 0.1f, 0.15f, 1f);
+                }
+            }
+
+            Light keyLight = new GameObject("CharacterKeyLight").AddComponent<Light>();
+            keyLight.transform.SetParent(stage.transform, false);
+            keyLight.type = LightType.Directional;
+            keyLight.intensity = 1.5f;
+            keyLight.transform.localRotation = Quaternion.Euler(30f, -30f, 0f);
+
+            Light fillLight = new GameObject("CharacterFillLight").AddComponent<Light>();
+            fillLight.transform.SetParent(stage.transform, false);
+            fillLight.type = LightType.Directional;
+            fillLight.intensity = 0.6f;
+            fillLight.transform.localRotation = Quaternion.Euler(20f, 150f, 0f);
+
+            Light rimLight = new GameObject("CharacterRimLight").AddComponent<Light>();
+            rimLight.transform.SetParent(stage.transform, false);
+            rimLight.type = LightType.Directional;
+            rimLight.intensity = 1.2f;
+            rimLight.transform.localRotation = Quaternion.Euler(135f, 45f, 0f);
+
+            GameObject oldMainCamera = GameObject.Find("Main Camera");
+            if (oldMainCamera != null)
+            {
+                Destroy(oldMainCamera);
+            }
+
+            Camera cam = new GameObject("Main Camera").AddComponent<Camera>();
+            cam.gameObject.tag = "MainCamera";
+            cam.transform.SetParent(stage.transform, false);
+            cam.transform.localPosition = new Vector3(0f, 1.0f, 4.0f);
+            cam.transform.localRotation = Quaternion.Euler(3f, 180f, 0f);
+            cam.clearFlags = CameraClearFlags.SolidColor;
+            cam.backgroundColor = new Color(0.04f, 0.05f, 0.07f, 1f);
+            cam.fieldOfView = 40f;
+            cam.nearClipPlane = 0.3f;
+            cam.farClipPlane = 1000f;
+            cam.depth = -1;
+
+            MuluCharacterConfigurator configurator = stage.GetComponent<MuluCharacterConfigurator>();
+            if (configurator == null)
+            {
+                configurator = stage.AddComponent<MuluCharacterConfigurator>();
+            }
+
+            configurator.mainCamera = cam;
+            configurator.keyLight = keyLight;
+            configurator.fillLight = fillLight;
+            configurator.rimLight = rimLight;
+            configurator.platformRenderer = platformRenderer;
+            configurator.characterTransform = character;
+            configurator.ApplySettings();
+
+            return character;
         }
 
         [ContextMenu("Clear Mulu UI")]
@@ -241,7 +378,7 @@ namespace MuluAI
             scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
             scaler.matchWidthOrHeight = 1f;
 
-            if (FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
+            if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
             {
                 new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem), typeof(UnityEngine.EventSystems.StandaloneInputModule));
             }
@@ -295,6 +432,7 @@ namespace MuluAI
         private GameObject CreateJoystickTemplate(Transform parent)
         {
             RectTransform root = CreatePanel("JoystickTemplate", parent, AnchorStretch(), Vector2.zero, new Vector2(270f, 270f), new Color(0.02f, 0.03f, 0.045f, 0.42f));
+            ApplyCircleVisual(root, new Color(0.02f, 0.03f, 0.045f, 0.42f), true);
             Image rootImage = root.GetComponent<Image>();
             if (rootImage != null)
             {
@@ -302,6 +440,7 @@ namespace MuluAI
             }
 
             RectTransform ring = CreatePanel("Ring", root, new AnchorPreset(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)), Vector2.zero, new Vector2(210f, 210f), new Color(1f, 1f, 1f, 0.08f));
+            ApplyCircleVisual(ring, new Color(1f, 1f, 1f, 0.08f), false);
             Image ringImage = ring.GetComponent<Image>();
             if (ringImage != null)
             {
@@ -309,6 +448,7 @@ namespace MuluAI
             }
 
             RectTransform knob = CreatePanel("Knob", root, new AnchorPreset(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)), Vector2.zero, new Vector2(105f, 105f), accentColor);
+            ApplyCircleVisual(knob, accentColor, false);
             Image knobImage = knob.GetComponent<Image>();
             if (knobImage != null)
             {
@@ -321,6 +461,24 @@ namespace MuluAI
 
             root.gameObject.SetActive(false);
             return root.gameObject;
+        }
+
+        private static void ApplyCircleVisual(RectTransform rect, Color color, bool raycastTarget)
+        {
+            Image image = rect.GetComponent<Image>();
+            if (image != null)
+            {
+                image.enabled = false;
+            }
+
+            MuluCircleGraphic circle = rect.GetComponent<MuluCircleGraphic>();
+            if (circle == null)
+            {
+                circle = rect.gameObject.AddComponent<MuluCircleGraphic>();
+            }
+
+            circle.color = color;
+            circle.raycastTarget = raycastTarget;
         }
 
         private RectTransform CreatePanel(string name, Transform parent, AnchorPreset anchors, Vector2 position, Vector2 size, Color color)
