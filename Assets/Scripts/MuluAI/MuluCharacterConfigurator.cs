@@ -14,6 +14,9 @@ namespace MuluAI
         public bool autoFitCharacterScale = true;
         public float targetCharacterHeight = 2f;
 
+        private bool cachedBaseCharacterScale;
+        private Vector3 baseCharacterLocalScale = Vector3.one;
+
         [Header("Platform Settings")]
         public Renderer platformRenderer;
         public float platformDiameter = 6f;
@@ -119,13 +122,15 @@ namespace MuluAI
             {
                 if (characterTransform != null)
                 {
+                    CacheBaseCharacterScale();
+
                     if (autoFitCharacterScale)
                     {
                         FitCharacterToBounds();
                     }
                     else
                     {
-                        characterTransform.localScale = Vector3.one * characterScale;
+                        characterTransform.localScale = baseCharacterLocalScale * Mathf.Max(characterScale, 0.01f);
                     }
 
                     CenterCharacterFromBounds();
@@ -267,11 +272,18 @@ namespace MuluAI
             float fitMultiplier = targetCharacterHeight / currentHeight;
             float finalMultiplier = fitMultiplier * Mathf.Max(characterScale, 0.01f);
 
-            Vector3 currentScale = characterTransform.localScale;
-            characterTransform.localScale = new Vector3(
-                currentScale.x * finalMultiplier,
-                currentScale.y * finalMultiplier,
-                currentScale.z * finalMultiplier);
+            characterTransform.localScale = baseCharacterLocalScale * finalMultiplier;
+        }
+
+        private void CacheBaseCharacterScale()
+        {
+            if (cachedBaseCharacterScale || characterTransform == null)
+            {
+                return;
+            }
+
+            baseCharacterLocalScale = characterTransform.localScale;
+            cachedBaseCharacterScale = true;
         }
 
         private void CenterCharacterFromBounds()
@@ -327,7 +339,7 @@ namespace MuluAI
             cameraTargetOffset = new Vector3(pivotOffset.x, Mathf.Max(pivotOffset.y, 0.7f), pivotOffset.z);
 
             float frameDistance = Mathf.Max(bounds.extents.magnitude * 2.25f, 3.5f);
-            cameraDistance = Mathf.Max(cameraDistance, frameDistance);
+            cameraDistance = frameDistance;
         }
     }
 }

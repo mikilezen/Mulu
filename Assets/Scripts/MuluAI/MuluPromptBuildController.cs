@@ -40,22 +40,22 @@ namespace MuluAI
         {
             if (webClient == null)
             {
-                webClient = FindObjectOfType<MuluWebClient>();
+                webClient = FindAnyObjectByType<MuluWebClient>();
             }
 
             if (assetPlacementManager == null)
             {
-                assetPlacementManager = FindObjectOfType<AssetPlacementManager>();
+                assetPlacementManager = FindAnyObjectByType<AssetPlacementManager>();
             }
 
             if (hudController == null)
             {
-                hudController = FindObjectOfType<DynamicHUDController>();
+                hudController = FindAnyObjectByType<DynamicHUDController>();
             }
 
             if (environmentController == null)
             {
-                environmentController = FindObjectOfType<EnvironmentController>();
+                environmentController = FindAnyObjectByType<EnvironmentController>();
             }
 
             if (submitButton != null)

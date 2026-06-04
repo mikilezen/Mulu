@@ -51,6 +51,8 @@ namespace MuluAI
         private void Awake()
         {
             AutoWire();
+            EnsureHomeRuntimeContent();
+            AutoWire();
             Wire();
             ShowHome();
         }
@@ -267,7 +269,7 @@ namespace MuluAI
             Canvas canvas = GetComponentInParent<Canvas>();
             if (canvas == null)
             {
-                canvas = FindFirstObjectByType<Canvas>();
+                canvas = FindAnyObjectByType<Canvas>();
             }
             if (canvas == null) return;
 
@@ -315,7 +317,7 @@ namespace MuluAI
                 }
             }
 
-            promptController = FindFirstObjectByType<MuluPromptBuildController>();
+            promptController = FindAnyObjectByType<MuluPromptBuildController>();
 
             GameObject stage = GameObject.Find("MuluCharacterStage");
             if (stage != null)
@@ -337,6 +339,166 @@ namespace MuluAI
             }
 
             Debug.Log("MuluMobileNavigation references auto-wired successfully.");
+        }
+
+        private void EnsureHomeRuntimeContent()
+        {
+            if (homePage == null)
+            {
+                return;
+            }
+
+            RectTransform homeRect = homePage.GetComponent<RectTransform>();
+            if (homeRect == null)
+            {
+                return;
+            }
+
+            RectTransform previewFrame = homePage.transform.Find("CharacterPreviewFrame") as RectTransform;
+            if (previewFrame == null)
+            {
+                previewFrame = CreatePanel("CharacterPreviewFrame", homeRect, StretchAnchor(), Vector2.zero, Vector2.zero, new Color(0.02f, 0.03f, 0.045f, 0.12f));
+                Image previewImage = previewFrame.GetComponent<Image>();
+                if (previewImage != null)
+                {
+                    previewImage.raycastTarget = false;
+                }
+            }
+
+            MuluChatLogView chatLog = previewFrame.GetComponentInChildren<MuluChatLogView>(true);
+            if (chatLog == null)
+            {
+                chatLog = CreateRuntimeChatScroll(previewFrame);
+                chatLog.AddSystemMessage("Chat is ready. Type a prompt below to start.");
+            }
+
+            if (previewFrame.Find("MoveJoystick3D") == null)
+            {
+                CreateRuntimeJoystick(previewFrame);
+            }
+
+            if (chatLog != null && promptController != null)
+            {
+                System.Reflection.FieldInfo field = promptController.GetType().GetField("chatLogView",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                if (field != null)
+                {
+                    field.SetValue(promptController, chatLog);
+                }
+            }
+        }
+
+        private MuluChatLogView CreateRuntimeChatScroll(RectTransform parent)
+        {
+            RectTransform scrollRoot = CreatePanel("ChatScroll", parent,
+                new AnchorPreset(new Vector2(0f, 0.12f), new Vector2(1f, 0.58f), new Vector2(0.5f, 0.5f)),
+                Vector2.zero, Vector2.zero, Color.clear);
+
+            ScrollRect scrollRect = scrollRoot.gameObject.AddComponent<ScrollRect>();
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Elastic;
+
+            RectTransform viewport = CreatePanel("Viewport", scrollRoot, StretchAnchor(), Vector2.zero, Vector2.zero, new Color(0f, 0f, 0f, 0.15f));
+            Mask mask = viewport.gameObject.AddComponent<Mask>();
+            mask.showMaskGraphic = false;
+
+            RectTransform content = CreatePanel("Content", viewport,
+                new AnchorPreset(new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0.5f, 1f)),
+                Vector2.zero, Vector2.zero, Color.clear);
+
+            VerticalLayoutGroup layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.padding = new RectOffset(14, 14, 16, 18);
+            layout.spacing = 12f;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            ContentSizeFitter fitter = content.gameObject.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.viewport = viewport;
+            scrollRect.content = content;
+
+            MuluChatLogView chatLog = scrollRoot.gameObject.AddComponent<MuluChatLogView>();
+            SetPrivateField(chatLog, "content", content);
+            SetPrivateField(chatLog, "scrollRect", scrollRect);
+            SetPrivateField(chatLog, "font", Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf"));
+            return chatLog;
+        }
+
+        private MuluVirtualJoystick CreateRuntimeJoystick(RectTransform parent)
+        {
+            RectTransform pad = CreatePanel("MoveJoystick3D", parent,
+                new AnchorPreset(new Vector2(0f, 0f), new Vector2(0f, 0f), Vector2.zero),
+                new Vector2(24f, 264f), new Vector2(180f, 180f), new Color(0.02f, 0.025f, 0.04f, 0.65f));
+
+            Image padImage = pad.GetComponent<Image>();
+            if (padImage != null)
+            {
+                padImage.raycastTarget = true;
+            }
+
+            RectTransform ring = CreatePanel("Ring", pad, StretchAnchor(), Vector2.zero, new Vector2(-20f, -20f), new Color(1f, 1f, 1f, 0.08f));
+            Image ringImage = ring.GetComponent<Image>();
+            if (ringImage != null)
+            {
+                ringImage.raycastTarget = false;
+            }
+
+            RectTransform knob = CreatePanel("Knob", pad,
+                new AnchorPreset(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f)),
+                Vector2.zero, new Vector2(76f, 76f), accentColor);
+            Image knobImage = knob.GetComponent<Image>();
+            if (knobImage != null)
+            {
+                knobImage.raycastTarget = false;
+            }
+
+            return pad.gameObject.AddComponent<MuluVirtualJoystick>();
+        }
+
+        private static RectTransform CreatePanel(string name, Transform parent, AnchorPreset anchors, Vector2 position, Vector2 size, Color color)
+        {
+            GameObject panel = new GameObject(name, typeof(RectTransform), typeof(Image));
+            panel.transform.SetParent(parent, false);
+            RectTransform rect = panel.GetComponent<RectTransform>();
+            rect.anchorMin = anchors.Min;
+            rect.anchorMax = anchors.Max;
+            rect.pivot = anchors.Pivot;
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+            panel.GetComponent<Image>().color = color;
+            return rect;
+        }
+
+        private static AnchorPreset StretchAnchor()
+        {
+            return new AnchorPreset(Vector2.zero, Vector2.one, new Vector2(0.5f, 0.5f));
+        }
+
+        private static void SetPrivateField(Object target, string fieldName, object value)
+        {
+            System.Reflection.FieldInfo field = target.GetType().GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            if (field != null)
+            {
+                field.SetValue(target, value);
+            }
+        }
+
+        private struct AnchorPreset
+        {
+            public readonly Vector2 Min;
+            public readonly Vector2 Max;
+            public readonly Vector2 Pivot;
+
+            public AnchorPreset(Vector2 min, Vector2 max, Vector2 pivot)
+            {
+                Min = min;
+                Max = max;
+                Pivot = pivot;
+            }
         }
     }
 }

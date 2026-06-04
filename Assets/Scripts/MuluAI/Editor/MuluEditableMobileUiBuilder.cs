@@ -871,6 +871,7 @@ namespace MuluAI.Editor
                 Vector2.zero, new Vector2(210, 210), new Color(1, 1, 1, 0.08f));
             Box("Knob", r, Anc(0.5f, 0.5f, 0.5f, 0.5f),
                 Vector2.zero, new Vector2(105, 105), COL_ACCENT);
+            r.gameObject.AddComponent<MuluVirtualJoystick>();
             r.gameObject.SetActive(false);
             return r.gameObject;
         }

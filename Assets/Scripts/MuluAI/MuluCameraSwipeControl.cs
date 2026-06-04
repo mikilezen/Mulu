@@ -114,7 +114,7 @@ namespace MuluAI
                 // Only process if the touch is over the preview area (this RawImage)
                 if (touch.phase == TouchPhase.Began)
                 {
-                    if (IsTouchOverThisElement(touch.position))
+                    if (IsTouchOverThisElement(touch.position) && !IsTouchOverJoystick(touch.position))
                     {
                         isDragging = true;
                         lastPointerPos = touch.position;
@@ -192,6 +192,39 @@ namespace MuluAI
             }
 
             return RectTransformUtility.RectangleContainsScreenPoint(rt, screenPos, cam);
+        }
+
+        private static bool IsTouchOverJoystick(Vector2 screenPos)
+        {
+            MuluVirtualJoystick[] joysticks = FindObjectsByType<MuluVirtualJoystick>(FindObjectsSortMode.None);
+            for (int i = 0; i < joysticks.Length; i++)
+            {
+                MuluVirtualJoystick joystick = joysticks[i];
+                if (joystick == null || !joystick.isActiveAndEnabled)
+                {
+                    continue;
+                }
+
+                RectTransform rect = joystick.GetComponent<RectTransform>();
+                if (rect == null)
+                {
+                    continue;
+                }
+
+                Canvas canvas = joystick.GetComponentInParent<Canvas>();
+                Camera camera = null;
+                if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                {
+                    camera = canvas.worldCamera;
+                }
+
+                if (RectTransformUtility.RectangleContainsScreenPoint(rect, screenPos, camera))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
