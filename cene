@@ -1,0 +1,13 @@
+[1mdiff --git a/Assets/mulu.unity b/Assets/mulu.unity[m
+[1mindex 07fa37f..77e795e 100644[m
+[1m--- a/Assets/mulu.unity[m
+[1m+++ b/Assets/mulu.unity[m
+[36m@@ -6716,7 +6716,7 @@[m [mRectTransform:[m
+   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}[m
+   m_LocalPosition: {x: 0, y: 0, z: 0}[m
+   m_LocalScale: {x: 1, y: 1, z: 1}[m
+[31m-  m_ConstrainProportionsScale: 0[m
+[32m+[m[32m  m_ConstrainProportionsScale: 1[m
+   m_Children:[m
+   - {fileID: 1018759150}[m
+   - {fileID: 1898276506}[m
